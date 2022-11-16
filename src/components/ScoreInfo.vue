@@ -1,14 +1,21 @@
-<template>
-  <h1 class="h-1"> Your score is <span> {{ 0 }} </span></h1>
-</template>
-
 <script>
   export default {
-    name: "ScoreInfo"
-  }
+    name: "ScoreInfo",
+    data() {
+      return {
+        level: 0,
+      };
+    }
+  };
 </script>
 
-<style scoped>
+<template>
+  <h1 class="h-1">
+    LvL <span> {{ level }} </span>
+  </h1>
+</template>
+
+<style lang="scss">
   .h-1 {
     color: #fff;
     text-shadow: 1px 1px 2px #000;

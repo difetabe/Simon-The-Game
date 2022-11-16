@@ -1,16 +1,26 @@
+<script>
+  export default {
+    name: "GameOverDialog",
+    methods: {
+      restart() {
+      },
+    },
+    data() {
+      return {
+        gameOver: false,
+      };
+    },
+  };
+</script>
+
 <template>
   <div class="dialog-background"></div>
   <div class="game-over_wrapper">
     <h1 class="game-over_title">Game over</h1>
-    <button class="game-over_button">Restart</button>
+    <h1 class="game-over_title score">Your score is {{ level }}!</h1>
+    <button @click="restart" class="game-over_button">Restart</button>
   </div>
 </template>
-
-<script lang="ts">
-  export default {
-    name: 'GameOverDialog',
-  }
-</script>
 
 <style scoped lang="scss">
   .game-over {
@@ -33,8 +43,16 @@
       margin-bottom: 1rem;
     }
 
+    .score {
+      color: #cc0000;
+    }
+
     &_button {
       padding: 1rem;
     }
+  }
+
+  .disabled {
+    display: none;
   }
 </style>

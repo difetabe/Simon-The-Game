@@ -1,26 +1,63 @@
-<script lang="ts">
-  import PlayButton from '@/components/PlayButton.vue';
+<script>
+  import simpleGameMode from "@/assets/scripts/simple-game-mode";
+  import PlayButton from "@/components/PlayButton.vue";
 
   export default {
-    name: 'LightsPanel',
+    name: "LightsPanel",
     components: {
       PlayButton,
+    },
+    data() {
+      return {
+        mode: "simple",
+        steps: [],
+        step: 0,
+      };
+    },
+    methods: {
+      getRandomId() {
+        return Math.floor(Math.random() * 4 + 1);
+      },
+      gameStart(step) {
+        let id = this.getRandomId()
+        this.steps.push(id);
+      },
     }
-  }
+  };
 </script>
 
 <template>
   <div class="lights-wrapper">
-    <button id="1" @click="count++" class="light light_top-left"></button>
-    <button id="2" @click="" class="light light_top-right"></button>
-    <button id="3" @click="" class="light light_bottom-left"></button>
-    <button id="4" @click="" class="light light_bottom-right"></button>
+    <button
+        id="1"
+        class="light light_top-left"
+        @click='gameStart(step)'
+    >
+      {{ steps }}
+    </button>
+    <button
+        id="2"
+        class="light light_top-right"
+    >
+      {{ steps }}
+    </button>
+    <button
+        id="3"
+        class="light light_bottom-left"
+    >
+      {{ steps }}
+    </button>
+    <button
+        id="4"
+        class="light light_bottom-right"
+    >
+      {{ steps }}
+    </button>
     <PlayButton></PlayButton>
   </div>
 </template>
 
-<style scoped lang="scss">
-
+<style lang="scss">
   .lights-wrapper {
     position: relative;
     width: 250px;
@@ -35,14 +72,14 @@
     border: none;
     width: 100px;
     height: 100px;
+    transition: background-color 0.2s ease-in-out;
 
     &:hover {
-      border-color: transparent;
-      box-shadow: inset 0 0 5px #000;
+      box-shadow: inset 0 0 8px #000;
     }
 
     &:active {
-      box-shadow: inset 0 0 40px #000;
+      background-color: #666666;
     }
 
     &_top-left {

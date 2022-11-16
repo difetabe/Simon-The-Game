@@ -1,26 +1,21 @@
-<script lang="ts">
-  import LightsPanel from '@/components/LightsPanel.vue';
-  import GameOverDialog from '@/components/GameOverDialog.vue';
-  import ScoreInfo from '@/components/ScoreInfo.vue';
+<script setup>
+  import {ref, computed} from "vue";
+  import LightsPanel from "@/components/LightsPanel.vue";
+  import GameOverDialog from "@/components/GameOverDialog.vue";
+  import ScoreInfo from "@/components/ScoreInfo.vue";
 
-  export default {
-    components: {
-      ScoreInfo,
-      LightsPanel,
-      GameOverDialog,
-    }
-  }
+
 </script>
 
 <template>
   <div class="wrapper">
     <ScoreInfo></ScoreInfo>
     <LightsPanel></LightsPanel>
-    <!--    <GameOverDialog></GameOverDialog>-->
+    <GameOverDialog v-if="gameOver"/>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
   .wrapper {
     display: flex;
     flex-direction: column;
