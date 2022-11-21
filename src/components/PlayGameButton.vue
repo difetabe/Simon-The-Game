@@ -1,19 +1,11 @@
-<script>
-  export default {
-    name: "PlayButton",
-  };
+<script setup>
 </script>
 
 <template>
-  <button
-      class="play-button"
-      @click="changeState()"
-  >
-    Start
-  </button>
+  <button class="play-button">Start</button>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .play-button {
     position: absolute;
     top: 50%;
