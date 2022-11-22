@@ -1,6 +1,7 @@
 <script setup>
   import LightButton from '@/components/LightButton.vue';
   import PlayGameButton from "@/components/PlayGameButton.vue";
+  import GameOverDialog from "@/components/GameOverDialog.vue"
   import {ref} from "vue";
 
   const state = {
@@ -11,6 +12,7 @@
   };
   const stateGame = ref(state.waitingStart);
   const level = ref(0);
+  const userSteps = ref(0);
 
   const colors = {
     yellow: 'yellow',
@@ -28,13 +30,18 @@
   }
 
   function onCLick(color) {
+    const currentColor = colorsSequence[userSteps.value];
     if (stateGame.value !== state.userTurn) {
       return;
     }
-    if (colorsSequence[0] === color) {
-      timer(1000).then(() => levelUp())
+    if (currentColor === color) {
+      userSteps.value++
+      if (userSteps.value === colorsSequence.length) {
+        timer(1000).then(() => levelUp())
+      }
     } else {
       stateGame.value = state.gameOver;
+      return;
     }
   }
 
@@ -45,6 +52,8 @@
   }
 
   function levelUp() {
+    userSteps.value = 0;
+    stateGame.value = state.computerTurn;
     level.value++;
     const randomColorIndex = getRandomNum();
     colorsSequence.push(colorsArr[randomColorIndex]);
@@ -59,13 +68,13 @@
                 return timer(300)
               })
         }, Promise.resolve())
+        .then(() => stateGame.value = state.userTurn);
   }
 
 
   function startGame() {
     if (stateGame.value === state.waitingStart) {
       levelUp()
-      stateGame.value = state.userTurn
     }
   }
 
@@ -73,7 +82,7 @@
 
 <template>
   <div class="wrapper">
-    <div>Lvl: {{ level }} {{ stateGame }}</div>
+    <h1 class="h-1">Lvl: {{ level }} {{ stateGame }}</h1>
     <div class="lights-wrapper">
       <LightButton @customClick="onCLick" :color="colors.yellow" :class="{active: colors.yellow === activeButtonColor}"/>
       <LightButton @customClick="onCLick" :color="colors.green" :class="{active: colors.green === activeButtonColor}"/>
@@ -81,6 +90,7 @@
       <LightButton @customClick="onCLick" :color="colors.red" :class="{active: colors.red === activeButtonColor}"/>
       <PlayGameButton @click="startGame"/>
     </div>
+<!--    <GameOverDialog />-->
   </div>
 </template>
 
@@ -92,6 +102,7 @@
   }
 
   .lights-wrapper {
+    position: relative;
     width: 250px;
     display: flex;
     flex-wrap: wrap;
