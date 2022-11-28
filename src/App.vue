@@ -2,96 +2,142 @@
   import LightButton from '@/components/LightButton.vue';
   import PlayGameButton from "@/components/PlayGameButton.vue";
   import GameOverDialog from "@/components/GameOverDialog.vue"
-  import {ref} from "vue";
+  import {reactive, ref} from "vue";
+  import {COLORS} from "@/utils/colors";
+  import {STATES} from "@/utils/gameStates";
 
-  const state = {
-    waitingStart: 'waitingStart',
-    computerTurn: 'computerTurn',
-    userTurn: 'userTurn',
-    gameOver: 'gameOver'
-  };
-  const stateGame = ref(state.waitingStart);
+  const gameState = ref(STATES.START);
   const level = ref(0);
-  const userSteps = ref(0);
 
-  const colors = {
-    yellow: 'yellow',
-    green: 'green',
-    blue: 'blue',
-    red: 'red',
-  };
-  const colorsArr = Object.values(colors);
-  const colorsSequence = [];
+  const buttons = reactive([
+    {
+      id: COLORS.YELLOW,
+      selected: false
+    },
+    {
+      id: COLORS.GREEN,
+      selected: false
+    },
+    {
+      id: COLORS.BLUE,
+      selected: false
+    },
+    {
+      id: COLORS.RED,
+      selected: false
+    }
+  ])
 
-  const activeButtonColor = ref('');
+  const colorsSequence = ref([]);
 
-  function getRandomNum() {
-    return Math.floor(Math.random() * 4 + 1) - 1;
+  function getRandomId() {
+    const index = Math.round(Math.random() * buttons.length);
+    return buttons[index].id
   }
 
-  function onCLick(color) {
-    const currentColor = colorsSequence[userSteps.value];
-    if (stateGame.value !== state.userTurn) {
-      return;
-    }
-    if (currentColor === color) {
-      userSteps.value++
-      if (userSteps.value === colorsSequence.length) {
-        timer(1000).then(() => levelUp())
-      }
-    } else {
-      stateGame.value = state.gameOver;
-      return;
-    }
-  }
-
-  function timer(timeout) {
+  function blink(buttonId, timeout) {
+    const button = buttons.find((_button) => _button.id === buttonId);
     return new Promise((resolve) => {
-      setTimeout(() => resolve(), timeout)
+      button.selected = true;
+      setTimeout(() => {
+        button.selected = false;
+        resolve()
+      }, timeout)
     })
   }
 
   function levelUp() {
-    userSteps.value = 0;
-    stateGame.value = state.computerTurn;
     level.value++;
-    const randomColorIndex = getRandomNum();
-    colorsSequence.push(colorsArr[randomColorIndex]);
-    colorsSequence
-        .reduce((acc, curr) => {
-          return acc.then(() => {
-            activeButtonColor.value = curr;
-            return timer(700)
-          })
-              .then(() => {
-                activeButtonColor.value = '';
-                return timer(300)
-              })
-        }, Promise.resolve())
-        .then(() => stateGame.value = state.userTurn);
   }
 
+  function runNextLevel() {
+    prepareComputerTurn()
+    levelUp()
+    addNewStep();
+    runSequence();
+  }
+
+  function addNewStep() {
+    colorsSequence.value.push(getRandomId());
+  }
+
+  function runSequence() {
+    colorsSequence.value
+        .reduce((acc, btnId) => {
+          return acc.then(() => blink(btnId, 700))
+        }, Promise.resolve()).then(() => gameState.value = STATES.INPUT)
+  }
+
+  function prepareComputerTurn() {
+    userInput = [];
+    gameState.value = STATES.INIT;
+  }
 
   function startGame() {
-    if (stateGame.value === state.waitingStart) {
-      levelUp()
+    if (gameState.value === STATES.START) {
+      runNextLevel()
     }
+  }
+
+  let userInput = [];
+
+  function checkUserInput() {
+    userInput.forEach((id, index) => {
+      if (colorsSequence.value[index] !== id) {
+        gameState.value = STATES.END;
+      }
+    })
+  }
+
+  function nextLevelIfComplete() {
+    if (gameState.value !== STATES.END
+        && userInput.length === colorsSequence.value.length) {
+      setTimeout(() => runNextLevel(), 1000);
+    }
+  }
+
+  function addUserChoise(id) {
+    userInput.push(id)
+  }
+
+  function selectHandler(id) {
+    if (gameState.value !== STATES.INPUT) {
+      return
+    }
+    addUserChoise(id);
+    blink(id, 400)
+    checkUserInput();
+    nextLevelIfComplete();
+  }
+
+  function restartGame() {
+    gameState.value = STATES.START
   }
 
 </script>
 
 <template>
   <div class="wrapper">
-    <h1 class="h-1">Lvl: {{ level }} {{ stateGame }}</h1>
-    <div class="lights-wrapper">
-      <LightButton @customClick="onCLick" :color="colors.yellow" :class="{active: colors.yellow === activeButtonColor}"/>
-      <LightButton @customClick="onCLick" :color="colors.green" :class="{active: colors.green === activeButtonColor}"/>
-      <LightButton @customClick="onCLick" :color="colors.blue" :class="{active: colors.blue === activeButtonColor}"/>
-      <LightButton @customClick="onCLick" :color="colors.red" :class="{active: colors.red === activeButtonColor}"/>
-      <PlayGameButton @click="startGame"/>
+    <div class="display-info">
+      <h1
+          class="h-1">Lvl: {{ level }}</h1>
+      <h2 class="h-2">{{gameState}}</h2>
     </div>
-<!--    <GameOverDialog />-->
+    <div class="lights-wrapper">
+      <LightButton
+          :state="button"
+          @select="selectHandler"
+          v-for="button in buttons"
+          :key="button.id"
+      />
+      <PlayGameButton
+          @click="startGame"/>
+    </div>
   </div>
+  <GameOverDialog
+      v-if="gameState === STATES.END"
+      @restart="restartGame"
+  />
 </template>
 
 <style lang="scss" scoped>
@@ -101,12 +147,24 @@
     align-items: center;
   }
 
+  .wrapper-round {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+
   .lights-wrapper {
+    display: grid;
+    grid-template: repeat(2, auto)/ repeat(2, auto);
     position: relative;
-    width: 250px;
-    display: flex;
-    flex-wrap: wrap;
     gap: 10px;
-    justify-content: center;
+    border-radius: 50%;
+    border: 20px solid #595959;
+    overflow: hidden;
+  }
+  .display-info {
+    text-align: center;
   }
 </style>

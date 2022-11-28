@@ -1,19 +1,11 @@
 <script setup>
-
-  const props = defineProps({
-    active: {
-      type: Boolean,
-      default: false
-    },
-  })
 </script>
 
 <template>
   <div class="dialog-background"></div>
   <div class="game-over_wrapper">
     <h1 class="game-over_title">Game over</h1>
-    <h1 class="game-over_title score">Your score is {{  }}!</h1>
-    <button @click="$emit('customClick', props.active)" class="game-over_button">Restart</button>
+    <button @click="$emit('restart')" class="game-over_button">Restart</button>
   </div>
 </template>
 
